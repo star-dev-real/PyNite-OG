@@ -4,3 +4,6 @@ sanic-ext
 sanic-cors
 sanic-router
 python-dotenv
+aiofiles
+httpx
+python-multipart
