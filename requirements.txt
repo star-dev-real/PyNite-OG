@@ -1,0 +1,6 @@
+sanic
+ujson
+sanic-ext
+sanic-cors
+sanic-router
+python-dotenv
