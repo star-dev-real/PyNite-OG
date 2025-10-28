@@ -101,8 +101,8 @@ def getItemShop():
                                "regularPrice": 0, "finalPrice": 0, 
                                "saleExpiration": "9999-12-02T01:12:00Z", "basePrice": 0}],
                     "meta": {"NewDisplayAssetPath": "", "SectionId": "Featured", 
-                            "LayoutId": "LawinServer.99", "TileSize": "Small", 
-                            "AnalyticOfferGroupId": "LawinServer/Attitude8", 
+                            "LayoutId": "PyNiteOG.99", "TileSize": "Small", 
+                            "AnalyticOfferGroupId": "PyNiteOG/Attitude8", 
                             "FirstSeen": "2/2/2020"},
                     "matchFilter": "", "filterWeight": 0, "appStoreId": [], 
                     "requirements": [], "offerType": "StaticPrice", 
@@ -112,9 +112,9 @@ def getItemShop():
                     "metaInfo": [
                         {"key": "NewDisplayAssetPath", "value": "="},
                         {"key": "SectionId", "value": "Featured"},
-                        {"key": "LayoutId", "value": "LawinServer.99"},
+                        {"key": "LayoutId", "value": "PyNiteOG.99"},
                         {"key": "TileSize", "value": "Small"},
-                        {"key": "AnalyticOfferGroupId", "value": "LawinServer/Attitude8"},
+                        {"key": "AnalyticOfferGroupId", "value": "PyNiteOG/Attitude8"},
                         {"key": "FirstSeen", "value": "2/2/2020"}
                     ],
                     "displayAssetPath": "", "itemGrants": [], "sortPriority": 0, 
@@ -265,7 +265,7 @@ def getContentPages(req):
             for mode in news_modes:
                 if mode in contentpages:
                     contentpages[mode]["news"]["messages"][0]["image"] = "https://fortnite-public-service-prod11.ol.epicgames.com/images/discord-s.png"
-                    contentpages[mode]["news"]["messages"][1]["image"] = "https://fortnite-public-service-prod11.ol.epicgames.com/images/lawin-s.png"
+                    contentpages[mode]["news"]["messages"][1]["image"] = "https://fortnite-public-service-prod11.ol.epicgames.com/images/PyNite-s.png"
     except Exception as e:
         print(f"Error updating news images: {e}")
 

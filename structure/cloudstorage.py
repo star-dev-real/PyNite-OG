@@ -150,7 +150,7 @@ def setup_cloudstorage_routes(app: Sanic):
     @app.put("/fortnite/api/cloudstorage/user/<account_id:path>/<file:str>")
     async def put_user_file(request, account_id: str, file: str):
         if os.getenv('LOCALAPPDATA'):
-            client_settings_dir = Path(os.getenv('LOCALAPPDATA')) / "LawinServer" / "ClientSettings"
+            client_settings_dir = Path(os.getenv('LOCALAPPDATA')) / "PyNiteOG" / "ClientSettings"
         else:
             client_settings_dir = Path(__file__).parent.parent / "ClientSettings"
         
