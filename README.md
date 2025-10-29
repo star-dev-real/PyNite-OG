@@ -3,8 +3,7 @@ This is a remake of the Universal Backend, PyNiteserver V1. It is entirely writt
 
 # Features
 ## Save the World:
-```
-diff
+```diff
 CloudStorage and ClientSettings (Settings saving)
 Llama purchasing and opening with random loot and choice packs
 Every Hero, Weapon, Defender and Resource
