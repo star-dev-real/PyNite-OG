@@ -1,5 +1,5 @@
 # PyNiteOG
-This is a remake of the Universal Backend, PyNiteserver V1. It is entirely written in Python.
+This is a remake of the Universal Backend, Lawinserver V1. It is entirely written in Python.
 
 # Features
 ## Save the World:
@@ -68,7 +68,7 @@ Joining gameservers using the matchmaker - check out the GameServer seciton in c
 ## Contributions
 - Giro (KeemoXI) - Main Developer
 - Star - Main Developer
-- PyNite - Making PyNiteServer V1
+- Lawin - Making LawinServer V1
 
 ## PyNiteserver
-Credits to PyNite for all the responses, profiles etc. Original PyNiteserver V1 = https://github.com/PyNite0129/PyNiteserver
+Credits to Lawin for all the responses, profiles etc. Original LawinServer V1 = https://github.com/PyNite0129/Lawinserver
