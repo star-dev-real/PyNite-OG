@@ -7,6 +7,10 @@ from pathlib import Path
 import base64
 from typing import Dict, Any, List, Union
 
+
+from xmpp import xmpp_server
+
+
 with open(Path(__file__).parent.parent / "responses" / "catalog.json", "r") as f:
     CATALOG_DATA = json.load(f)
 
@@ -40,6 +44,7 @@ def GetVersionInfo(req):
     CL = ""
     
     try:
+        
         parts = user_agent.split("-")
         if len(parts) > 3:
             build_id_part = parts[3].split(",")[0]
@@ -51,6 +56,7 @@ def GetVersionInfo(req):
                     CL = build_id_part
     except Exception:
         try:
+            
             parts = user_agent.split("-")
             if len(parts) > 1:
                 build_id_part = parts[1].split("+")[0]
@@ -60,14 +66,16 @@ def GetVersionInfo(req):
             pass
 
     try:
+        
         if "Release-" in user_agent:
             build_part = user_agent.split("Release-")[1].split("-")[0]
+            
             
             if build_part.count(".") == 2:
                 parts = build_part.split(".")
                 build_part = f"{parts[0]}.{parts[1]}{parts[2]}"
             
-            # Parse season and build
+            
             season_num = int(build_part.split(".")[0])
             build_num = float(build_part)
             
@@ -80,7 +88,7 @@ def GetVersionInfo(req):
             raise ValueError("No Release- found in user-agent")
             
     except Exception:
-        # Default values
+        
         memory["season"] = 2
         memory["build"] = 2.0
         memory["CL"] = CL
@@ -146,7 +154,7 @@ def getItemShop():
                             catalog_entry["prices"][0]["regularPrice"] = value["price"]
                             catalog_entry["prices"][0]["finalPrice"] = value["price"]
                             
-                            # Make featured items appear on the left side
+                            
                             catalog_entry["sortPriority"] = -1
 
                             if catalog_entry["itemGrants"]:
@@ -193,6 +201,7 @@ def getTheater(req):
     season_key = f"Season{memory['season']}"
 
     try:
+        
         if memory["build"] >= 30.20:
             theater = theater.replace("/Game/World/ZoneThemes", "/STW_Zones/World/ZoneThemes")
             theater = theater.replace('"DataTable\'/Game/', '"/Script/Engine.DataTable\'/Game/')
@@ -201,11 +210,14 @@ def getTheater(req):
             theater = theater.replace("/Game/", "/SaveTheWorld/")
             theater = theater.replace('"DataTable\'/SaveTheWorld/', '"DataTable\'/Game/')
 
+        
         now = datetime.now()
         
         if memory["season"] >= 9:
+            
             refresh_time = now.replace(hour=23, minute=59, second=59, microsecond=999999)
         else:
+            
             if now.hour < 6:
                 refresh_time = now.replace(hour=5, minute=59, second=59, microsecond=999999)
             elif now.hour < 12:
@@ -223,6 +235,7 @@ def getTheater(req):
 
     theater = json.loads(theater)
 
+    
     if "Seasonal" in theater:
         if season_key in theater["Seasonal"]:
             seasonal_data = theater["Seasonal"][season_key]
@@ -241,16 +254,22 @@ def chooseTranslationsInJSON(obj, req, target_language=""):
         else:
             target_language = accept_language
 
-    if isinstance(obj, list):
-        for item in obj:
-            chooseTranslationsInJSON(item, req, target_language)
-    elif isinstance(obj, dict):
-        for key, value in obj.items():
-            if isinstance(value, dict):
-                if target_language in value or "en" in value:
-                    obj[key] = value.get(target_language, value.get("en"))
-                else:
-                    chooseTranslationsInJSON(value, req, target_language)
+    def process_item(item):
+        if isinstance(item, dict):
+            for key, value in item.items():
+                if isinstance(value, dict):
+                    if target_language in value or "en" in value:
+                        item[key] = value.get(target_language, value.get("en"))
+                    else:
+                        process_item(value)
+                elif isinstance(value, list):
+                    for list_item in value:
+                        process_item(list_item)
+        elif isinstance(item, list):
+            for list_item in item:
+                process_item(list_item)
+
+    process_item(obj)
 
 def getContentPages(req):
     memory = GetVersionInfo(req)
@@ -279,6 +298,7 @@ def getContentPages(req):
                 if len(backgrounds) > 1:
                     backgrounds[1]["stage"] = season_bg
 
+        
         season = memory["season"]
         build = memory["build"]
         
@@ -297,6 +317,7 @@ def getContentPages(req):
             27: {"backgrounds": [{"stage": "rufus"}]}
         }
 
+        
         if season in background_configs:
             config = background_configs[season]
             if "lobby" in config and "lobby" in contentpages:
@@ -306,6 +327,7 @@ def getContentPages(req):
                     if i < len(backgrounds):
                         backgrounds[i].update(bg_config)
 
+        
         build_configs = {
             9.30: {"lobby": {"stage": "summer"}},
             11.10: {"backgrounds": [{"stage": "fortnitemares"}, {"stage": "fortnitemares"}]},
@@ -343,6 +365,7 @@ def getContentPages(req):
                             if i < len(backgrounds):
                                 backgrounds[i].update(bg_config)
 
+        
         if not any(bg.get("backgroundimage") for bg in backgrounds if bg.get("backgroundimage")):
             backgrounds[0].update({
                 "stage": "defaultnotris",
@@ -362,23 +385,28 @@ def MakeSurvivorAttributes(templateId):
         "building_slot_used": -1
     }
 
+    
     fixed_attrs = SURVIVOR_DATA.get("fixedAttributes", {})
     if templateId in fixed_attrs:
         survivor_attributes.update(fixed_attrs[templateId])
 
+    
     if "gender" not in survivor_attributes:
         survivor_attributes["gender"] = str(random.randint(1, 2))  
 
+    
     if "managerSynergy" not in survivor_attributes:
         bonuses = SURVIVOR_DATA.get("bonuses", [])
         if bonuses:
             survivor_attributes["set_bonus"] = random.choice(bonuses)
 
+    
     if "personality" not in survivor_attributes:
         personalities = SURVIVOR_DATA.get("personalities", [])
         if personalities:
             survivor_attributes["personality"] = random.choice(personalities)
 
+    
     if "portrait" not in survivor_attributes:
         portrait_factor = survivor_attributes.get("managerSynergy", survivor_attributes.get("personality", ""))
         gender = survivor_attributes["gender"]
@@ -394,18 +422,34 @@ def MakeSurvivorAttributes(templateId):
 def MakeID():
     return str(uuid.uuid4())
 
-def sendXmppMessageToAll(body):
-    # This would need to be implemented based on your XMPP setup
-    # Placeholder will do tomorrow
-    if hasattr(global, 'Clients'):
-        if isinstance(body, dict):
-            body = json.dumps(body)
-        
-        # XMPP implementation would go here
-        pass
+async def sendXmppMessageToAll(body):
+    """Send XMPP message to all connected clients"""
+    if isinstance(body, dict):
+        body = json.dumps(body)
+    
+    
+    if xmpp_server and hasattr(xmpp_server, 'clients'):
+        for client in xmpp_server.clients:
+            try:
+                
+                import xml.etree.ElementTree as ET
+                message = ET.Element("message", {
+                    "from": "xmpp-admin@prod.ol.epicgames.com",
+                    "xmlns": "jabber:client",
+                    "to": client['jid']
+                })
+                body_elem = ET.SubElement(message, "body")
+                body_elem.text = body
+                
+                
+                message_str = ET.tostring(message, encoding='unicode', short_empty_elements=False)
+                await client['ws'].send(message_str)
+            except Exception as e:
+                print(f"Error sending XMPP message to {client['jid']}: {e}")
 
 def DecodeBase64(string):
     return base64.b64decode(string).decode('utf-8')
+
 
 __all__ = [
     'sleep',

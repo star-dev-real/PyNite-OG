@@ -1,5 +1,5 @@
 # PyNite-OG
-This is a remake of the Universal Backend, LawinServer V1. It is entirely written in Python.
+This is a remake of the Universal Backend, Lawinserver V1. It is entirely written in Python.
 
 ## Features
 [+] All Profiles
@@ -7,7 +7,7 @@ This is a remake of the Universal Backend, LawinServer V1. It is entirely writte
 ## Contributions
 - Giro (KeemoXI) - Main Developer
 - Star - Main Developer
-- Lawin - Making LawinServer V1
+- Lawin - Making Lawinserver V1
 
-## LawinServer
-Credits to Lawin for all the responses, profiles etc. Original LawinServer V1 = https://github.com/Lawin0129/LawinServer
+## Lawinserver
+Credits to Lawin for all the responses, profiles etc. Original Lawinserver V1 = https://github.com/Lawin0129/Lawinserver

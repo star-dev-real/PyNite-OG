@@ -7,3 +7,5 @@ python-dotenv
 aiofiles
 httpx
 python-multipart
+websockets
+xmltodict
