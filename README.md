@@ -41,6 +41,7 @@ Event Quests from Season 2 up to Season X & Season 24 (Can change)
 ```
 
 ## Battle Royale:
+```diff
 CloudStorage and ClientSettings (Settings saving)
 Winterfest presents opening (11.31, 19.01, 23.10 & 33.11)
 Purchasing Item Shop items
@@ -62,6 +63,7 @@ Discovery Tab
 Leaderboards (v1)
 Configurable backend sided in-game events - check out the Events seciton in config.ini for more details
 Joining gameservers using the matchmaker - check out the GameServer seciton in config.ini for more details
+```
 
 ## Contributions
 - Giro (KeemoXI) - Main Developer
