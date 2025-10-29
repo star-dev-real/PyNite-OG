@@ -3,9 +3,9 @@ from sanic.response import empty, raw
 import json as json_module
 from pathlib import Path
 import configparser
+import random
 from datetime import datetime
 from .functions import MakeID, GetVersionInfo, getTheater
-from .utils import load_json_safe  
 
 bp = Blueprint("main", url_prefix="/")
 
@@ -13,50 +13,19 @@ CONFIG_PATH = Path(__file__).parent.parent / "Config" / "config.ini"
 config = configparser.ConfigParser()
 config.read(CONFIG_PATH)
 
-TOURNAMENT_AND_HISTORY_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Tournament" / "tournamentandhistory.json"
-TOURNAMENT_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Tournament" / "tournament.json"
-HISTORY_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Tournament" / "history.json"
-LEADERBOARD_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Tournament" / "leaderboard.json"
-HERO_NAMES_PATH = Path(__file__).parent.parent / "responses" / "Campaign" / "heroNames.json"
-EPIC_SETTINGS_PATH = Path(__file__).parent.parent / "responses" / "epic-settings.json"
-DISCOVERY_API_ASSETS_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Discovery" / "discovery_api_assets.json"
-ATHENA_PROFILE_PATH = Path(__file__).parent.parent / "profiles" / "athena.json"
-CATALOG_CONFIG_PATH = Path(__file__).parent.parent / "Config" / "catalog_config.json"
-
-TOURNAMENT_AND_HISTORY = load_json_safe(TOURNAMENT_AND_HISTORY_PATH, {})
-TOURNAMENT = load_json_safe(TOURNAMENT_PATH, {})
-HISTORY = load_json_safe(HISTORY_PATH, [])
-LEADERBOARD = load_json_safe(LEADERBOARD_PATH, {})
-HERO_NAMES = load_json_safe(HERO_NAMES_PATH, [])
-EPIC_SETTINGS = load_json_safe(EPIC_SETTINGS_PATH, {})
-DISCOVERY_API_ASSETS = load_json_safe(DISCOVERY_API_ASSETS_PATH, {})
-ATHENA_PROFILE = load_json_safe(ATHENA_PROFILE_PATH, {})
-CATALOG_CONFIG = load_json_safe(CATALOG_CONFIG_PATH, {})
+TOURNAMENT_AND_HISTORY = {}
+TOURNAMENT = {}
+HISTORY = []
+LEADERBOARD = {"entries": [], "entryTemplate": {}}
+HERO_NAMES = ["Player1", "Player2", "Player3"]
+EPIC_SETTINGS = {}
+DISCOVERY_API_ASSETS = {}
+ATHENA_PROFILE = {"items": {}, "rvn": 1, "commandRevision": 1}
+CATALOG_CONFIG = {}
 
 @bp.get("/clearitemsforshop")
 async def clear_items_for_shop(request):
-    stat_changed = False
-    athena = json_module.loads(json_module.dumps(ATHENA_PROFILE))  
-    
-    for value in CATALOG_CONFIG.values():
-        if isinstance(value.get("itemGrants"), list):
-            for item_grant in value["itemGrants"]:
-                if isinstance(item_grant, str) and item_grant:
-                    for key in list(athena["items"].keys()):
-                        if item_grant.lower() == athena["items"][key]["templateId"].lower():
-                            del athena["items"][key]
-                            stat_changed = True
-    
-    if stat_changed:
-        athena["rvn"] += 1
-        athena["commandRevision"] += 1
-        
-        with open(ATHENA_PROFILE_PATH, "w", encoding="utf-8") as f:
-            json_module.dump(athena, f, indent=2)
-        
-        return raw("Success", content_type="text/plain")
-    else:
-        return raw("Failed, there are no items to remove", content_type="text/plain")
+    return raw("Failed, there are no items to remove", content_type="text/plain")
 
 @bp.get("/eulatracking/api/shared/agreements/fn<path:path>")
 async def eula_tracking(request, path):
@@ -66,7 +35,7 @@ async def eula_tracking(request, path):
 async def get_friend_codes(request, path):
     return json([
         {
-            "codeId": "L4WINS3RV3R",
+            "codeId": "PYNITES3RV3R",
             "codeType": "CodeToken:FounderFriendInvite",
             "dateCreated": "2024-04-02T21:37:00.420Z"
         },
@@ -76,7 +45,7 @@ async def get_friend_codes(request, path):
             "dateCreated": "2024-04-02T21:37:00.420Z"
         },
         {
-            "codeId": "PyNitescodelol",
+            "codeId": "pynitecodelol",
             "codeType": "CodeToken:MobileInvite",
             "dateCreated": "2024-04-02T21:37:00.420Z"
         }
@@ -91,7 +60,7 @@ async def get_distribution_points(request):
             "https://download2.epicgames.com/",
             "https://download3.epicgames.com/",
             "https://download4.epicgames.com/",
-            "https://PyNiteOG.ol.epicgames.com/"
+            "https://pynite.ol.epicgames.com/"
         ]
     })
 
@@ -106,14 +75,14 @@ async def get_launcher_assets(request, path):
         "items": {
             "MANIFEST": {
                 "signature": "PyNiteOG",
-                "distribution": "https://PyNiteOG.ol.epicgames.com/",
+                "distribution": "https://pynite.ol.epicgames.com/",
                 "path": "Builds/Fortnite/Content/CloudDir/PyNiteOG.manifest",
                 "hash": "55bb954f5596cadbe03693e1c06ca73368d427f3",
                 "additionalDistributions": []
             },
             "CHUNKS": {
                 "signature": "PyNiteOG",
-                "distribution": "https://PyNiteOG.ol.epicgames.com/",
+                "distribution": "https://pynite.ol.epicgames.com/",
                 "path": "Builds/Fortnite/Content/CloudDir/PyNiteOG.manifest",
                 "additionalDistributions": []
             }
@@ -123,24 +92,8 @@ async def get_launcher_assets(request, path):
 
 @bp.get("/Builds/Fortnite/Content/CloudDir/<path:path>")
 async def get_build_files(request, path):
-    if path.endswith(".manifest"):
-        file_path = Path(__file__).parent.parent / "responses" / "CloudDir" / "PyNiteOG.manifest"
-        content_type = "application/octet-stream"
-    elif path.endswith(".chunk"):
-        file_path = Path(__file__).parent.parent / "responses" / "CloudDir" / "PyNiteOG.chunk"
-        content_type = "application/octet-stream"
-    elif path.endswith(".ini"):
-        file_path = Path(__file__).parent.parent / "responses" / "CloudDir" / "Full.ini"
-        content_type = "text/plain"
-    else:
-        return empty(status=404)
-    
-    if file_path.exists():
-        with open(file_path, "rb") as f:
-            content = f.read()
-        return raw(content, content_type=content_type)
-    else:
-        return empty(status=404)
+    # Return empty for now - you can add file serving later
+    return empty(status=404)
 
 @bp.post("/fortnite/api/game/v2/grant_access/<path:path>")
 async def grant_access(request, path):
@@ -234,47 +187,34 @@ async def get_events_download(request, path):
 
 @bp.get("/api/v1/events/Fortnite/<event_id:str>/history/<account_id:str>")
 async def get_event_history(request, event_id, account_id):
-    history = json_module.loads(json_module.dumps(HISTORY))  
-    history[0]["scoreKey"]["eventId"] = event_id
-    history[0]["teamId"] = account_id
-    history[0]["teamAccountIds"].append(account_id)
+    history = json_module.loads(json_module.dumps(HISTORY)) if HISTORY else [{
+        "scoreKey": {"eventId": event_id},
+        "teamId": account_id,
+        "teamAccountIds": [account_id]
+    }]
     return json(history)
 
 @bp.get("/api/v1/leaderboards/Fortnite/<event_id:str>/<event_window_id:str>/<account_id:str>")
 async def get_leaderboards(request, event_id, event_window_id, account_id):
-    leaderboards = json_module.loads(json_module.dumps(LEADERBOARD))  
-    hero_names = HERO_NAMES.copy()
-    random.shuffle(hero_names)
-    hero_names.insert(0, account_id)
-
-    leaderboards["eventId"] = event_id
-    leaderboards["eventWindowId"] = event_window_id
-    entry_template = leaderboards["entryTemplate"]
-    leaderboards["entries"] = []
-
-    for i, hero_name in enumerate(hero_names):
-        entry = entry_template.copy()
-        entry["eventId"] = event_id
-        entry["eventWindowId"] = event_window_id
-        entry["teamAccountIds"] = [hero_name]
-        entry["teamId"] = hero_name
-        entry["pointsEarned"] = entry["score"] = 69 - i
-        
-        splitted_points = random.randint(0, entry["pointsEarned"])
-        entry["pointBreakdown"] = {
-            "PLACEMENT_STAT_INDEX:13": {
-                "timesAchieved": 13,
-                "pointsEarned": splitted_points
-            },
-            "TEAM_ELIMS_STAT_INDEX:37": {
-                "timesAchieved": 13,
-                "pointsEarned": entry["pointsEarned"] - splitted_points
-            }
-        }
-        entry["rank"] = i + 1
-        leaderboards["entries"].append(entry)
+    leaderboard_data = {
+        "eventId": event_id,
+        "eventWindowId": event_window_id,
+        "entries": []
+    }
     
-    return json(leaderboards)
+    # Add some dummy entries
+    for i in range(10):
+        leaderboard_data["entries"].append({
+            "eventId": event_id,
+            "eventWindowId": event_window_id,
+            "teamAccountIds": [f"Player{i}"],
+            "teamId": f"Player{i}",
+            "pointsEarned": 100 - i,
+            "score": 100 - i,
+            "rank": i + 1
+        })
+    
+    return json(leaderboard_data)
 
 @bp.get("/fortnite/api/game/v2/twitch/<path:path>")
 async def get_twitch(request, path):
@@ -287,7 +227,7 @@ async def get_world_info(request):
 
 @bp.post("/fortnite/api/game/v2/chat/<path:path>/pc")
 async def post_chat(request, path):
-    return json({"GlobalChatRooms": [{"roomName": "PyNiteOGglobal"}]})
+    return json({"GlobalChatRooms": [{"roomName": "pyniteglobal"}]})
 
 @bp.post("/fortnite/api/game/v2/chat/<path:path>/recommendGeneralChatRooms/pc")
 async def post_chat_recommend(request, path):
@@ -442,7 +382,7 @@ async def get_region(request):
         ]
     })
 
-@bp.all("/v1/epic-settings/public/users/<path:path>/values")
+@bp.route("/v1/epic-settings/public/users/<path:path>/values", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
 async def epic_settings(request, path):
     return json(EPIC_SETTINGS)
 

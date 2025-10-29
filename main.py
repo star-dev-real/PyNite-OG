@@ -1,53 +1,65 @@
-# main.py
 from sanic import Sanic, json
 from sanic.response import empty
 import os
 from pathlib import Path
 import asyncio
 
-# Import route modules with proper relative imports
-from structure.party import bp as party_bp
-from structure.discovery import bp as discovery_bp
-from structure.privacy import bp as privacy_bp
-from structure.timeline import bp as timeline_bp
-from structure.user import bp as user_bp
-from structure.contentpages import bp as contentpages_bp
-from structure.friends import bp as friends_bp
-from structure.main import bp as main_bp
-from structure.storefront import bp as storefront_bp
-from structure.version import bp as version_bp
-from structure.lightswitch import bp as lightswitch_bp
-from structure.affiliate import bp as affiliate_bp
-from structure.matchmaking import bp as matchmaking_bp
-from structure.cloudstorage import bp as cloudstorage_bp
-# from structure.mcp import bp as mcp_bp
+try:
+    from structure.party import bp as party_bp
+    from structure.discovery import bp as discovery_bp
+    from structure.privacy import bp as privacy_bp
+    from structure.timeline import bp as timeline_bp
+    from structure.user import bp as user_bp
+    from structure.contentpages import bp as contentpages_bp
+    from structure.friends import bp as friends_bp
+    from structure.main import bp as main_bp
+    from structure.storefront import bp as storefront_bp
+    from structure.version import bp as version_bp
+    from structure.lightswitch import bp as lightswitch_bp
+    from structure.affiliate import bp as affiliate_bp
+    from structure.matchmaking import bp as matchmaking_bp
+    from structure.cloudstorage import bp as cloudstorage_bp
+except ImportError as e:
+    print(f"Import error: {e}")
+    print("Make sure all structure modules have 'bp' blueprint defined")
+    exit(1)
 
 app = Sanic("PyNiteOG")
 
-# Configure app
 app.config.FALLBACK_ERROR_FORMAT = "json"
 
-app.blueprint(party_bp)
-app.blueprint(discovery_bp)
-app.blueprint(privacy_bp)
-app.blueprint(timeline_bp)
-app.blueprint(user_bp)
-app.blueprint(contentpages_bp)
-app.blueprint(friends_bp)
-app.blueprint(main_bp)
-app.blueprint(storefront_bp)
-app.blueprint(version_bp)
-app.blueprint(lightswitch_bp)
-app.blueprint(affiliate_bp)
-app.blueprint(matchmaking_bp)
-app.blueprint(cloudstorage_bp)
-# app.blueprint(mcp_bp)
+blueprints = [
+    (party_bp, "party"),
+    (discovery_bp, "discovery"),
+    (privacy_bp, "privacy"),
+    (timeline_bp, "timeline"),
+    (user_bp, "user"),
+    (contentpages_bp, "contentpages"),
+    (friends_bp, "friends"),
+    (main_bp, "main"),
+    (storefront_bp, "storefront"),
+    (version_bp, "version"),
+    (lightswitch_bp, "lightswitch"),
+    (affiliate_bp, "affiliate"),
+    (matchmaking_bp, "matchmaking"),
+    (cloudstorage_bp, "cloudstorage"),
+]
+
+for bp, name in blueprints:
+    try:
+        app.blueprint(bp)
+        print(f"✅ Registered blueprint: {name}")
+    except Exception as e:
+        print(f"❌ Failed to register blueprint {name}: {e}")
 
 @app.route("/")
 async def root(request):
     return json({"status": "PyNiteOG is running"})
 
-# 404 handler
+@app.route("/health")
+async def health_check(request):
+    return json({"status": "healthy"})
+
 @app.exception(404)
 async def handle_404(request, exception):
     return json({
@@ -61,8 +73,18 @@ async def handle_404(request, exception):
         'X-Epic-Error-Code': '1004'
     })
 
+@app.exception(Exception)
+async def handle_exception(request, exception):
+    print(f"Global exception handler: {exception}")
+    return json({
+        "errorCode": "errors.com.PyNiteOG.common.internal_error",
+        "errorMessage": "Internal server error",
+        "numericErrorCode": 1000,
+        "originatingService": "any",
+        "intent": "prod"
+    }, status=500)
+
 async def setup_directories():
-    """Create necessary directories"""
     try:
         local_app_data = os.getenv('LOCALAPPDATA')
         if local_app_data:
@@ -86,9 +108,8 @@ if __name__ == "__main__":
         await start_xmpp_server(80)
         
         print(f"PyNiteOG started listening on port {port}")
-        await app.create_server(host="0.0.0.0", port=port)
         
-        await asyncio.Future()
+        await app.run(host="0.0.0.0", port=port, debug=False, access_log=True)
     
     try:
         asyncio.run(start_servers())
@@ -97,3 +118,7 @@ if __name__ == "__main__":
             print(f"\033[31mERROR\033[0m: Port {port} is already in use!")
         else:
             raise e
+    except KeyboardInterrupt:
+        print("\nShutting down PyNiteOG...")
+    except Exception as e:
+        print(f"Unexpected error: {e}")
