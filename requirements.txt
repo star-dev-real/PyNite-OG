@@ -9,3 +9,4 @@ httpx
 python-multipart
 websockets
 xmltodict
+configparser

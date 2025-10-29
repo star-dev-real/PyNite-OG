@@ -1,3 +1,4 @@
+
 import asyncio
 import json
 import random
@@ -8,23 +9,40 @@ import base64
 from typing import Dict, Any, List, Union
 
 
-from xmpp import xmpp_server
+try:
+    with open(Path(__file__).parent.parent / "responses" / "catalog.json", "r", encoding="utf-8") as f:
+        CATALOG_DATA = json.load(f)
+except Exception as e:
+    print(f"Error loading catalog.json: {e}")
+    CATALOG_DATA = {}
 
+try:
+    with open(Path(__file__).parent.parent / "Config" / "catalog_config.json", "r", encoding="utf-8") as f:
+        CATALOG_CONFIG = json.load(f)
+except Exception as e:
+    print(f"Error loading catalog_config.json: {e}")
+    CATALOG_CONFIG = {}
 
-with open(Path(__file__).parent.parent / "responses" / "catalog.json", "r") as f:
-    CATALOG_DATA = json.load(f)
+try:
+    with open(Path(__file__).parent.parent / "responses" / "Campaign" / "worldstw.json", "r", encoding="utf-8") as f:
+        THEATER_DATA = json.load(f)
+except Exception as e:
+    print(f"Error loading worldstw.json: {e}")
+    THEATER_DATA = {}
 
-with open(Path(__file__).parent.parent / "Config" / "catalog_config.json", "r") as f:
-    CATALOG_CONFIG = json.load(f)
+try:
+    with open(Path(__file__).parent.parent / "responses" / "contentpages.json", "r", encoding="utf-8") as f:
+        CONTENT_PAGES_DATA = json.load(f)
+except Exception as e:
+    print(f"Error loading contentpages.json: {e}")
+    CONTENT_PAGES_DATA = {}
 
-with open(Path(__file__).parent.parent / "responses" / "Campaign" / "worldstw.json", "r") as f:
-    THEATER_DATA = json.load(f)
-
-with open(Path(__file__).parent.parent / "responses" / "contentpages.json", "r") as f:
-    CONTENT_PAGES_DATA = json.load(f)
-
-with open(Path(__file__).parent.parent / "responses" / "Campaign" / "survivorData.json", "r") as f:
-    SURVIVOR_DATA = json.load(f)
+try:
+    with open(Path(__file__).parent.parent / "responses" / "Campaign" / "survivorData.json", "r", encoding="utf-8") as f:
+        SURVIVOR_DATA = json.load(f)
+except Exception as e:
+    print(f"Error loading survivorData.json: {e}")
+    SURVIVOR_DATA = {}
 
 async def sleep(ms):
     await asyncio.sleep(ms / 1000)
@@ -422,31 +440,6 @@ def MakeSurvivorAttributes(templateId):
 def MakeID():
     return str(uuid.uuid4())
 
-async def sendXmppMessageToAll(body):
-    """Send XMPP message to all connected clients"""
-    if isinstance(body, dict):
-        body = json.dumps(body)
-    
-    
-    if xmpp_server and hasattr(xmpp_server, 'clients'):
-        for client in xmpp_server.clients:
-            try:
-                
-                import xml.etree.ElementTree as ET
-                message = ET.Element("message", {
-                    "from": "xmpp-admin@prod.ol.epicgames.com",
-                    "xmlns": "jabber:client",
-                    "to": client['jid']
-                })
-                body_elem = ET.SubElement(message, "body")
-                body_elem.text = body
-                
-                
-                message_str = ET.tostring(message, encoding='unicode', short_empty_elements=False)
-                await client['ws'].send(message_str)
-            except Exception as e:
-                print(f"Error sending XMPP message to {client['jid']}: {e}")
-
 def DecodeBase64(string):
     return base64.b64decode(string).decode('utf-8')
 
@@ -460,6 +453,5 @@ __all__ = [
     'getContentPages',
     'MakeSurvivorAttributes',
     'MakeID',
-    'sendXmppMessageToAll',
     'DecodeBase64'
 ]

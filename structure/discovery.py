@@ -6,37 +6,41 @@ from pathlib import Path
 bp = Blueprint("discovery", url_prefix="/")
 
 DISCOVERY_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Discovery" / "discovery_frontend.json"
-with open(DISCOVERY_PATH, "r") as f:
-    DISCOVERY_DATA = json_module.load(f)
+try:
+    with open(DISCOVERY_PATH, "r", encoding="utf-8") as f:
+        DISCOVERY_DATA = json_module.load(f)
+except Exception as e:
+    print(f"Error loading discovery_frontend.json: {e}")
+    DISCOVERY_DATA = {"v1": {}, "v2": {}}
 
 @bp.post("*/api/v2/discovery/surface/<path:path>")
 async def post_discovery_surface_v2(request, path):
-    return json(DISCOVERY_DATA["v2"])
+    return json(DISCOVERY_DATA.get("v2", {}))
 
 @bp.post("*/discovery/surface/<path:path>")
 async def post_discovery_surface_v1(request, path):
-    return json(DISCOVERY_DATA["v1"])
+    return json(DISCOVERY_DATA.get("v1", {}))
 
 @bp.get("/fortnite/api/discovery/accessToken/<branch:str>")
 async def get_discovery_access_token(request, branch):
     return json({
         "branchName": branch,
         "appId": "Fortnite",
-        "token": "PyNitestokenlol"
+        "token": "PyNitetokenlol"
     })
 
 @bp.post("/links/api/fn/mnemonic")
 async def post_mnemonic(request):
     mnemonic_array = []
     
-    if ("v2" in DISCOVERY_DATA and 
-        "Panels" in DISCOVERY_DATA["v2"] and 
-        len(DISCOVERY_DATA["v2"]["Panels"]) > 1 and
-        "Pages" in DISCOVERY_DATA["v2"]["Panels"][1] and
-        len(DISCOVERY_DATA["v2"]["Panels"][1]["Pages"]) > 0 and
-        "results" in DISCOVERY_DATA["v2"]["Panels"][1]["Pages"][0]):
+    discovery_v2 = DISCOVERY_DATA.get("v2", {})
+    if ("Panels" in discovery_v2 and 
+        len(discovery_v2["Panels"]) > 1 and
+        "Pages" in discovery_v2["Panels"][1] and
+        len(discovery_v2["Panels"][1]["Pages"]) > 0 and
+        "results" in discovery_v2["Panels"][1]["Pages"][0]):
         
-        for result in DISCOVERY_DATA["v2"]["Panels"][1]["Pages"][0]["results"]:
+        for result in discovery_v2["Panels"][1]["Pages"][0]["results"]:
             if "linkData" in result:
                 mnemonic_array.append(result["linkData"])
     
@@ -50,14 +54,14 @@ async def get_mnemonic_related(request, playlist):
     }
     
     if playlist:
-        if ("v2" in DISCOVERY_DATA and 
-            "Panels" in DISCOVERY_DATA["v2"] and 
-            len(DISCOVERY_DATA["v2"]["Panels"]) > 1 and
-            "Pages" in DISCOVERY_DATA["v2"]["Panels"][1] and
-            len(DISCOVERY_DATA["v2"]["Panels"][1]["Pages"]) > 0 and
-            "results" in DISCOVERY_DATA["v2"]["Panels"][1]["Pages"][0]):
+        discovery_v2 = DISCOVERY_DATA.get("v2", {})
+        if ("Panels" in discovery_v2 and 
+            len(discovery_v2["Panels"]) > 1 and
+            "Pages" in discovery_v2["Panels"][1] and
+            len(discovery_v2["Panels"][1]["Pages"]) > 0 and
+            "results" in discovery_v2["Panels"][1]["Pages"][0]):
             
-            for result in DISCOVERY_DATA["v2"]["Panels"][1]["Pages"][0]["results"]:
+            for result in discovery_v2["Panels"][1]["Pages"][0]["results"]:
                 if ("linkData" in result and 
                     "mnemonic" in result["linkData"] and 
                     result["linkData"]["mnemonic"] == playlist):
@@ -69,14 +73,14 @@ async def get_mnemonic_related(request, playlist):
 async def get_mnemonic_wildcard(request, path):
     mnemonic = path.split("/")[-1] if "/" in path else path
     
-    if ("v2" in DISCOVERY_DATA and 
-        "Panels" in DISCOVERY_DATA["v2"] and 
-        len(DISCOVERY_DATA["v2"]["Panels"]) > 1 and
-        "Pages" in DISCOVERY_DATA["v2"]["Panels"][1] and
-        len(DISCOVERY_DATA["v2"]["Panels"][1]["Pages"]) > 0 and
-        "results" in DISCOVERY_DATA["v2"]["Panels"][1]["Pages"][0]):
+    discovery_v2 = DISCOVERY_DATA.get("v2", {})
+    if ("Panels" in discovery_v2 and 
+        len(discovery_v2["Panels"]) > 1 and
+        "Pages" in discovery_v2["Panels"][1] and
+        len(discovery_v2["Panels"][1]["Pages"]) > 0 and
+        "results" in discovery_v2["Panels"][1]["Pages"][0]):
         
-        for result in DISCOVERY_DATA["v2"]["Panels"][1]["Pages"][0]["results"]:
+        for result in discovery_v2["Panels"][1]["Pages"][0]["results"]:
             if ("linkData" in result and 
                 "mnemonic" in result["linkData"] and 
                 result["linkData"]["mnemonic"] == mnemonic):

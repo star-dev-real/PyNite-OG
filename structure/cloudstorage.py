@@ -7,7 +7,7 @@ import json as json_module
 from pathlib import Path
 from datetime import datetime
 import urllib.parse
-from functions import GetVersionInfo
+from .functions import GetVersionInfo
 
 def setup_cloudstorage_routes(app: Sanic):
     @app.on_request

@@ -2,11 +2,16 @@ from sanic import Blueprint, json
 from sanic.response import empty, raw
 import json as json_module
 from pathlib import Path
-import random
-from functions import getTheater
+import configparser
+from datetime import datetime
+from .functions import MakeID, GetVersionInfo, getTheater
+from .utils import load_json_safe  
 
 bp = Blueprint("main", url_prefix="/")
 
+CONFIG_PATH = Path(__file__).parent.parent / "Config" / "config.ini"
+config = configparser.ConfigParser()
+config.read(CONFIG_PATH)
 
 TOURNAMENT_AND_HISTORY_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Tournament" / "tournamentandhistory.json"
 TOURNAMENT_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "Tournament" / "tournament.json"
@@ -18,32 +23,15 @@ DISCOVERY_API_ASSETS_PATH = Path(__file__).parent.parent / "responses" / "Athena
 ATHENA_PROFILE_PATH = Path(__file__).parent.parent / "profiles" / "athena.json"
 CATALOG_CONFIG_PATH = Path(__file__).parent.parent / "Config" / "catalog_config.json"
 
-with open(TOURNAMENT_AND_HISTORY_PATH, "r") as f:
-    TOURNAMENT_AND_HISTORY = json_module.load(f)
-
-with open(TOURNAMENT_PATH, "r") as f:
-    TOURNAMENT = json_module.load(f)
-
-with open(HISTORY_PATH, "r") as f:
-    HISTORY = json_module.load(f)
-
-with open(LEADERBOARD_PATH, "r") as f:
-    LEADERBOARD = json_module.load(f)
-
-with open(HERO_NAMES_PATH, "r") as f:
-    HERO_NAMES = json_module.load(f)
-
-with open(EPIC_SETTINGS_PATH, "r") as f:
-    EPIC_SETTINGS = json_module.load(f)
-
-with open(DISCOVERY_API_ASSETS_PATH, "r") as f:
-    DISCOVERY_API_ASSETS = json_module.load(f)
-
-with open(ATHENA_PROFILE_PATH, "r") as f:
-    ATHENA_PROFILE = json_module.load(f)
-
-with open(CATALOG_CONFIG_PATH, "r") as f:
-    CATALOG_CONFIG = json_module.load(f)
+TOURNAMENT_AND_HISTORY = load_json_safe(TOURNAMENT_AND_HISTORY_PATH, {})
+TOURNAMENT = load_json_safe(TOURNAMENT_PATH, {})
+HISTORY = load_json_safe(HISTORY_PATH, [])
+LEADERBOARD = load_json_safe(LEADERBOARD_PATH, {})
+HERO_NAMES = load_json_safe(HERO_NAMES_PATH, [])
+EPIC_SETTINGS = load_json_safe(EPIC_SETTINGS_PATH, {})
+DISCOVERY_API_ASSETS = load_json_safe(DISCOVERY_API_ASSETS_PATH, {})
+ATHENA_PROFILE = load_json_safe(ATHENA_PROFILE_PATH, {})
+CATALOG_CONFIG = load_json_safe(CATALOG_CONFIG_PATH, {})
 
 @bp.get("/clearitemsforshop")
 async def clear_items_for_shop(request):
@@ -63,7 +51,7 @@ async def clear_items_for_shop(request):
         athena["rvn"] += 1
         athena["commandRevision"] += 1
         
-        with open(ATHENA_PROFILE_PATH, "w") as f:
+        with open(ATHENA_PROFILE_PATH, "w", encoding="utf-8") as f:
             json_module.dump(athena, f, indent=2)
         
         return raw("Success", content_type="text/plain")

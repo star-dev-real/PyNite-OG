@@ -1,24 +1,19 @@
-from sanic import Blueprint, json, Sanic
+from sanic import Blueprint, json
 from sanic.response import empty
-import os
-from pathlib import Path
-from functions import chooseTranslationsInJSON, getContentPages
 import json as json_module
+from pathlib import Path
+from .functions import chooseTranslationsInJSON, getContentPages
+from .utils import load_json_safe 
 
-bp = Blueprint("contentpages", url_prefix="/content-pages")
+bp = Blueprint("contentpages", url_prefix="/")
 
 SPARK_TRACKS_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "sparkTracks.json"
 SEASON_PASSES_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "seasonPasses.json"
 MOTD_PATH = Path(__file__).parent.parent / "responses" / "Athena" / "motd.json"
 
-with open(SPARK_TRACKS_PATH, "r") as f:
-    SPARK_TRACKS = json_module.load(f)
-
-with open(SEASON_PASSES_PATH, "r") as f:
-    SEASON_PASSES = json_module.load(f)
-
-with open(MOTD_PATH, "r") as f:
-    MOTD_DATA = json_module.load(f)
+SPARK_TRACKS = load_json_safe(SPARK_TRACKS_PATH, {})
+SEASON_PASSES = load_json_safe(SEASON_PASSES_PATH, {})
+MOTD_DATA = load_json_safe(MOTD_PATH, {})
 
 
 @bp.get("/content/api/pages/fortnite-game/spark-tracks")

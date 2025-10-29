@@ -21,5 +21,4 @@ def setup_routes(app: Sanic):
                     "verified": False
                 })
         
-        # If no code found, return 404
         return json({}, status=404)

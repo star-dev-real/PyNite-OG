@@ -7,6 +7,7 @@ from websockets.server import WebSocketServerProtocol
 import xml.etree.ElementTree as ET
 import xml.dom.minidom
 from structure import functions
+from structure.matchmaker import handle_matchmaker
 
 class XMPPServer:
     def __init__(self, port: int = 80):
@@ -28,10 +29,12 @@ class XMPPServer:
     
     async def handle_connection(self, websocket: WebSocketServerProtocol, path: str):
         try:
+            
             if websocket.subprotocol and websocket.subprotocol.lower() == "xmpp":
                 await self.handle_xmpp_client(websocket)
             else:
-                await self.handle_matchmaker(websocket)
+                
+                await handle_matchmaker(websocket)
         except Exception as e:
             print(f"Connection error: {e}")
     
@@ -64,6 +67,7 @@ class XMPPServer:
                         await self.send_error(ws)
                         continue
                     
+                    
                     decoded = functions.DecodeBase64(root.text)
                     parts = decoded.split('\x00')
                     if len(parts) == 3:
@@ -80,6 +84,7 @@ class XMPPServer:
                 
                 elif tag == "presence":
                     await self.handle_presence(root, ws, jid)
+                
                 
                 if authenticated and account_id and jid and not client_data:
                     if not any(client['ws'] == ws for client in self.clients):
@@ -99,13 +104,6 @@ class XMPPServer:
             pass
         finally:
             await self.remove_client(ws)
-    
-    async def handle_matchmaker(self, ws: WebSocketServerProtocol):
-        try:
-            async for message in ws:
-                pass
-        except websockets.exceptions.ConnectionClosed:
-            pass
     
     async def send_open_response(self, ws: WebSocketServerProtocol, connection_id: str, authenticated: bool):
         if authenticated:
@@ -164,6 +162,7 @@ class XMPPServer:
                 return False
             
             account_id = parts[1]
+            
             if any(client['accountId'] == account_id for client in self.clients):
                 return False
             
@@ -292,6 +291,7 @@ class XMPPServer:
                         
                         await receiver['ws'].send(self.xml_to_string(message))
                     else:
+                        
                         message = self.create_xml_element("message", {
                             "from": jid,
                             "id": root.get('id', ''),
@@ -324,9 +324,11 @@ class XMPPServer:
             await self.send_error(ws)
             return
         
+        
         sender_index = self.clients.index(sender_data)
         self.clients[sender_index]['lastPresenceUpdate']['away'] = away
         self.clients[sender_index]['lastPresenceUpdate']['status'] = body
+        
         
         for client_data in self.clients:
             presence = self.create_xml_element("presence", {
@@ -405,6 +407,7 @@ class XMPPServer:
         except (json.JSONDecodeError, TypeError):
             return False
 
+
 xmpp_server = XMPPServer()
 
 async def start_xmpp_server(port: int = 80):
@@ -412,18 +415,27 @@ async def start_xmpp_server(port: int = 80):
     xmpp_server = XMPPServer(port)
     await xmpp_server.start()
 
+
 async def sendXmppMessageToAll(body):
+    """Send XMPP message to all connected clients"""
     if isinstance(body, dict):
         body = json.dumps(body)
     
-    for client in xmpp_server.clients:
-        try:
-            message = xmpp_server.create_xml_element("message", {
-                "from": "xmpp-admin@prod.ol.epicgames.com",
-                "xmlns": "jabber:client",
-                "to": client['jid']
-            })
-            message.append(xmpp_server.create_xml_element("body", text=body))
-            await client['ws'].send(xmpp_server.xml_to_string(message))
-        except Exception as e:
-            print(f"Error sending XMPP message: {e}")
+    
+    if xmpp_server and hasattr(xmpp_server, 'clients'):
+        for client in xmpp_server.clients:
+            try:
+                
+                message = xmpp_server.create_xml_element("message", {
+                    "from": "xmpp-admin@prod.ol.epicgames.com",
+                    "xmlns": "jabber:client",
+                    "to": client['jid']
+                })
+                body_elem = xmpp_server.create_xml_element("body", text=body)
+                message.append(body_elem)
+                
+                
+                message_str = xmpp_server.xml_to_string(message)
+                await client['ws'].send(message_str)
+            except Exception as e:
+                print(f"Error sending XMPP message to {client['jid']}: {e}")
